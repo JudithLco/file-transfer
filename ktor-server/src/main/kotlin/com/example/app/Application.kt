@@ -17,8 +17,5 @@ fun Application.module() {
     configureRouting()
     configureSerialization()
 
-    launch{
-        println("Starting application")
-       //cleanup()
-    }
+    DeleteService.deleteJob()
 }

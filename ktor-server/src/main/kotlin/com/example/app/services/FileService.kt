@@ -6,10 +6,14 @@ import java.util.UUID
 
 object FileService {
     private val directory = File("uploads")
+    private val dataDirectory = File(directory, "data")
 
     fun generateFile(id: String): File = File(directory, id)
     fun generateId(): String = UUID.randomUUID().toString()
     //Point d'amelioration: rendre l'ID plus user friendly
 
-    fun deleteFile(id: String) = File(directory, id).deleteRecursively()
+    fun deleteFile(id: String) {
+        File(directory, id).deleteRecursively()
+        File(dataDirectory, "${id}.info.json").deleteRecursively()
+    }
 }
