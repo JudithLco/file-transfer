@@ -1,8 +1,15 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlinx-serialization")
 }
+
+val BASE_URL = gradleLocalProperties(rootDir, providers).getProperty("BASE_URL","")
 
 android {
     namespace = "com.app.android_app"
@@ -16,6 +23,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue(
+            "string",
+            "BASE_URL",
+            BASE_URL.toString()
+        )
     }
 
     buildTypes {
@@ -40,6 +53,15 @@ android {
 }
 
 dependencies {
+    val ktor_version: String by project
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose")
+    implementation(platform("io.ktor:ktor-bom:$ktor_version"))
+    implementation("io.ktor:ktor-client-android")
+    implementation("io.ktor:ktor-client-serialization")
+    implementation("io.ktor:ktor-client-logging")
+    implementation("io.ktor:ktor-client-content-negotiation")
+    implementation("io.ktor:ktor-serialization-kotlinx-json")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

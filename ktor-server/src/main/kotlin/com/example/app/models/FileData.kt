@@ -28,12 +28,18 @@ data class FileResponse(
 )
 
 @Serializable
-data class FileListResponse(
-    val files: List<FileData>
+data class ClientFileData(
+    val id: String,
+    val name: String,
+    val contentType: String,
+    val hash: String,
+    val size: Long,
+    val deleteAfterUse: Boolean,
+    val expirationTime: String,
+    val createdAt: String
 )
 
 @Serializable
-data class ErrorResponse(
-    val error: String,
-    val message: String
+data class FileListResponse(
+    val files: List<ClientFileData>
 )

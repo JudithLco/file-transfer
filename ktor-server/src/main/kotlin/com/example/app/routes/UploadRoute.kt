@@ -66,13 +66,13 @@ fun Route.uploadRoute() {
         val data = FileData(
             id = fileId,
             name = name!!,
-            path = file.absolutePath,
             contentType = contentType ?: "application/octet-stream",
             hash = HashService.sha256(file.readBytes()),
+            path = file.absolutePath,
             size = size!!,
             deleteAfterUse = deleteAfterUse ?: false,
             expirationTime = now().plus(expiration.hours).toString(),
-            createdAt = now().toString()
+            createdAt = now().toString(),
         )
 
         InfoService.saveInfo(data)

@@ -1,5 +1,6 @@
 package com.example.app.services
 
+import com.example.app.models.ClientFileData
 import com.example.app.models.FileData
 import java.io.File
 import java.util.UUID
@@ -16,4 +17,8 @@ object FileService {
         File(directory, id).deleteRecursively()
         File(dataDirectory, "${id}.info.json").deleteRecursively()
     }
+
+    fun FileData.toClient(): ClientFileData = ClientFileData(
+        id, name, contentType, hash, size, deleteAfterUse, expirationTime, createdAt
+    )
 }

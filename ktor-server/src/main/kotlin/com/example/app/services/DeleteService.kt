@@ -38,7 +38,7 @@ object DeleteService {
                 catch (e:Exception){
                     println(e.message)
                 }
-                delay(30.minutes)
+                delay(10.minutes)
             }
         }
     }
