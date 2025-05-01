@@ -6,14 +6,22 @@ import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.io.File
 import java.io.FileOutputStream
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun UploadScreen(viewModel: UploadViewModel = viewModel()) {
@@ -22,9 +30,10 @@ fun UploadScreen(viewModel: UploadViewModel = viewModel()) {
 
     var fileName by remember { mutableStateOf<String?>(null) }
     var fileToUpload by remember { mutableStateOf<File?>(null) }
-
     var deleteAfterUse by remember { mutableStateOf(false) }
-    var expiration by remember { mutableStateOf(3600L) }
+    var expirationHours by remember { mutableStateOf("1") }
+    val clipboardManager: ClipboardManager = LocalClipboardManager.current
+    var showCopiedMessage by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
@@ -35,57 +44,158 @@ fun UploadScreen(viewModel: UploadViewModel = viewModel()) {
     }
 
     Column(modifier = Modifier.padding(16.dp)) {
-        Button(onClick = { launcher.launch("*/*") }) {
-            Text("Choisir un fichier")
-        }
+        Spacer(Modifier.height(24.dp))
 
-        Spacer(Modifier.height(8.dp))
-
-        fileName?.let {
-            Text("Fichier sélectionné : $it")
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            Checkbox(checked = deleteAfterUse, onCheckedChange = { deleteAfterUse = it })
-            Text("Supprimer après usage")
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = expiration.toString(),
-            onValueChange = { value ->
-                expiration = value.toLongOrNull() ?: 3600
-            },
-            label = { Text("Expiration (en secondes)") }
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                fileToUpload?.let {
-                    viewModel.uploadFile(it, deleteAfterUse, expiration)
-                }
-            },
-            enabled = fileToUpload != null
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            Text("Uploader")
+            Text(
+                "Upload",
+                style = MaterialTheme.typography.headlineLarge,
+                textAlign = TextAlign.Center
+            )
         }
 
         Spacer(Modifier.height(16.dp))
 
-        when (val s = state) {
-            is UploadState.Loading -> CircularProgressIndicator()
-            is UploadState.Success -> Text("Upload réussi : ${s.response.name}")
-            is UploadState.Error -> Text("Erreur : ${s.message}")
-            UploadState.Idle -> {}
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+
+            Spacer(Modifier.height(16.dp))
+
+            Button(
+                onClick = { launcher.launch("*/*") },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Chose a file")
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            fileName?.let {
+                Text(
+                    text = "Selected file: $it",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = deleteAfterUse,
+                    onCheckedChange = { deleteAfterUse = it }
+                )
+                Text("Delete after use")
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                text = "File Expiration Time:",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Set how many hours from now the file will expire. Between 1-168h.",
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = expirationHours,
+                onValueChange = { expirationHours = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Hours (1-168)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                )
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    fileToUpload?.let {
+                        viewModel.uploadFile(
+                            file = it,
+                            deleteAfterUse = deleteAfterUse,
+                            expiration = expirationHours.toLongOrNull()?.times(3600) ?: 3600
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = fileToUpload != null
+            ) {
+                Text("Upload")
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            when (val s = state) {
+                is UploadState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                is UploadState.Success -> {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "Upload Successful",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color(0xFF4CAF50)
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        Text("File: ${s.response.name}")
+
+                        // ID avec bouton de copie simple (sans icône)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "ID: ${s.response.id}",
+                                modifier = Modifier.weight(1f)
+                            )
+                            TextButton(
+                                onClick = {
+                                    clipboardManager.setText(AnnotatedString(s.response.id))
+                                    showCopiedMessage = true
+                                }
+                            ) {
+                                Text("Copy")
+                            }
+                        }
+
+                        if (showCopiedMessage) {
+                            Text(
+                                "Copied to clipboard",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        Text("Expires: ${s.response.expirationTime}")
+                        Text("Delete after use: ${if (s.response.deleteAfterUse) "Yes" else "No"}")
+                    }
+                }
+                is UploadState.Error -> Text(
+                    "Error: ${s.message}",
+                    color = MaterialTheme.colorScheme.error
+                )
+                UploadState.Idle -> {}
+            }
         }
     }
 }
-
 fun uriToFile(uri: Uri, context: Context): File {
     val fileName = context.contentResolver.query(uri, null, null, null, null)
         ?.use { cursor ->
