@@ -156,7 +156,6 @@ fun UploadScreen(viewModel: UploadViewModel = viewModel()) {
 
                         Text("File: ${s.response.name}")
 
-                        // ID avec bouton de copie simple (sans icône)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
