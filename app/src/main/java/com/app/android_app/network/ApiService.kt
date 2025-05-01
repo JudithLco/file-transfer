@@ -8,13 +8,14 @@ import io.ktor.client.call.body
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import java.io.File
 import io.ktor.client.request.*
-import android.content.Context
-import com.app.android_app.R
+import com.app.android_app.data.model.DownloadResponse
+import io.ktor.client.plugins.onDownload
+import io.ktor.client.statement.readBytes
+import io.ktor.http.HttpStatusCode
 
 class ApiService (private val client: HttpClient){
     private val baseUrl = "http://192.168.1.82:8080"
@@ -38,4 +39,33 @@ class ApiService (private val client: HttpClient){
     suspend fun fetchAllFiles(): HttpResponse {
         return client.get("$baseUrl/listAll")
     }
+
+    // Dans ApiService.kt
+    suspend fun downloadFile(
+        fileId: String,
+        onProgress: (Float) -> Unit = {}
+    ): Pair<FileResponse, ByteArray> {
+        val response: HttpResponse = client.get("$baseUrl/download/$fileId") {
+            onDownload { bytesSentTotal, contentLength ->
+                if (contentLength != null) {
+                    onProgress(bytesSentTotal.toFloat() / contentLength.toFloat())
+                }
+            }
+        }
+
+        val fileResponse = response.headers["Content-Disposition"]?.let {
+            // Parse filename from Content-Disposition header
+            val filename = it.substringAfter("filename=").removeSurrounding("\"")
+            FileResponse(
+                id = fileId,
+                name = filename,
+                hash = "", // Non disponible dans la réponse
+                expirationTime = "", // Non disponible
+                deleteAfterUse = false, // Non disponible
+                createdAt = "" // Non disponible
+            )
+        } ?: throw Exception("Invalid file response")
+
+        return Pair(fileResponse, response.body())
     }
+}

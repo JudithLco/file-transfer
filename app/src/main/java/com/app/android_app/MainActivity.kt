@@ -17,6 +17,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.app.android_app.ui.theme.*
 import com.app.android_app.ui.upload.UploadScreen
+import com.app.android_app.ui.list.ListScreen
+import com.app.android_app.ui.download.DownloadScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,16 +48,6 @@ fun AppNavigation(nav: NavHostController){
             ListScreen()
         }
     }
-}
-
-@Composable
-fun ListScreen() {
-    TODO("Not yet implemented")
-}
-
-@Composable
-fun DownloadScreen() {
-    TODO("Not yet implemented")
 }
 
 @Composable
