@@ -47,7 +47,7 @@ L'application Android, réalisée avec **Ktor Client** et **Jetpack Compose** pe
 
 
 ## Demo
-![Animation](https://github.com/user-attachments/assets/b37fcc48-7a5a-42a6-8f13-872fab8bdd2c)
+![Zoumv2](https://github.com/user-attachments/assets/5459417e-0b80-44e0-ac80-b23291f91b78)
 
 
 # Lancement du projet
