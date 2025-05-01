@@ -39,7 +39,7 @@ class ApiService (private val client: HttpClient){
     suspend fun fetchAllFiles(): HttpResponse {
         return client.get("$baseUrl/listAll")
     }
-    
+
     suspend fun downloadFile(
         fileId: String,
         onProgress: (Float) -> Unit = {}

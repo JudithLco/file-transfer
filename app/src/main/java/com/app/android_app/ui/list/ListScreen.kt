@@ -89,7 +89,6 @@ fun ListScreen(viewModel: ListViewModel = viewModel()) {
                 }
             }
             ListState.Idle -> {
-                // Nothing to show yet
             }
         }
     }
